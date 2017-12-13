@@ -1,0 +1,108 @@
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+	<script src="https://unpkg.com/vue"></script>
+	<script src="https://unpkg.com/vue-resource"></script>
+
+	<style>
+	#app {
+		width: 600px; 
+		margin: 0 auto 0 auto;
+	}
+	</style>
+</head>
+<body>
+<div id="app">
+
+<div id="progress">
+<h1>
+Loading cantinas...
+</h1>
+<div class="progress">
+  <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" v-bind:style="{width: progress}">
+    <span class="sr-only">60% Complete</span>
+  </div>
+</div>
+</div>
+
+<select v-if="canteens.length" v-on:change="load" v-model="canteenId">
+  <option v-for="c in canteens" v-bind:value="c.id">{{ c.name }}</option>
+</select>
+
+<p v-if="meals.length == 0">
+  No meal plan.
+</p>
+<ul v-if="meals.length">
+  <li v-for="m in meals">{{ m.name }} 
+  	<span v-if="favorites.hasOwnProperty(m.name)"><i class="glyphicon glyphicon-heart"></i> <a href v-on:click.prevent="unstar(m.name)">(unstar)</a></span>
+  	<span v-else><a href v-on:click.prevent="star(m.name)">(star)</a></span>
+  </li>
+</ul>
+
+</div>
+
+<script type="text/javascript">
+let app = new Vue({
+	el: '#app',
+  mounted: function() {
+    // retrieve canteens
+  	this.$http.get('//openmensa.org/api/v2/canteens/')
+    	.then(resp => {
+      	this.$data.canteens = resp.body
+        this.$data.progress = '100%'
+      })
+      .catch(err => console.log(err))
+
+    // retrieve favorites (if any)
+    this.$http.get('/favorites')
+      .then(resp => {
+        console.log(resp.body)
+        resp.body.forEach(o => {
+          this.$data.favorites[o.name] = o._id;
+        });
+      })
+  },
+  data: {
+  	progress: 0,
+    canteens: [],
+    meals: [],
+    canteenId: 0,
+    favorites: {}
+  },
+  methods: {
+  	load() {
+    	console.log('lade canteen ' + this.$data.canteenId)
+      this.$http.get(`//openmensa.org/api/v2/canteens/${this.$data.canteenId}/days/20171130/meals`)
+      	.then(resp => {
+        	console.log(resp.body)
+          this.$data.meals = resp.body
+        })
+    },
+    star(name) {
+      console.log('starring ' + name)
+      this.$http.post('/favorites', {name: name})
+        .then(resp => {
+          console.log(resp.body)
+          let obj = {}
+          obj[name] = resp.body._id
+          this.$data.favorites = Object.assign({}, this.$data.favorites, obj)
+        })
+    },
+    unstar(name) {
+      console.log('unstarring ' + name)
+      this.$http.delete('/favorites/' + this.$data.favorites[name])
+        .then(resp => {
+          console.log(resp.body)
+          delete this.$data.favorites[name]
+          this.$data.favorites = Object.assign({}, this.$data.favorites)
+        })
+    }
+  }
+})
+
+</script>
+</body>
+</html>
