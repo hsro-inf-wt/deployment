@@ -9,8 +9,10 @@ app.use(express.static('static'))
 // careful: this is configured for a *local* mongo
 // use appropriate hostname when using docker-compose!
 // const url = 'mongodb://mongo:27017'
-const url = process.env.MONGODB_URI
+const url = process.env._MONGODB_URI
 let db
+
+console.log(url)
 
 // connect to mongo
 mongo.MongoClient.connect(url)
