@@ -8,7 +8,8 @@ app.use(express.static('static'))
 
 // careful: this is configured for a *local* mongo
 // use appropriate hostname when using docker-compose!
-const url = 'mongodb://localhost:27017'
+// const url = 'mongodb://mongo:27017'
+const url = process.env.MONGODB_URI
 let db
 
 // connect to mongo
@@ -66,5 +67,5 @@ app.post('/favorites/', (req, res) => {
 		})
 });
 
-app.listen(3000, 
-	() => console.log("Example app.js listening on port 3000!"))
+app.listen(process.env.PORT, 
+	() => console.log(`Example app.js listening on port ${process.env.PORT}!`))
