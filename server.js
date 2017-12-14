@@ -18,9 +18,9 @@ console.log(url)
 mongo.MongoClient.connect(url)
 	.then(client => {
 		console.log(client)
-		return client.db('riko493')
+		return client.db('wt-2017')
 	})
-	.then(function (db) {
+	.then(db => {
 		console.log(db)
 		return db.createCollection('favorites')
 	})
